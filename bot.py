@@ -7,7 +7,7 @@ from zipfile import ZipFile
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = "8728187007:AAESOl1NK4GY0m8tPzk5Jw9IvQkHE7cMtZ4"
 
 def fetch_pdf(url, filepath):
     try:
