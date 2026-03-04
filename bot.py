@@ -1,3 +1,4 @@
+# bot.py - final working version using python-telegram-bot v21.0
 import os
 import re
 import tempfile
@@ -5,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 from zipfile import ZipFile
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
 
 BOT_TOKEN = "8728187007:AAESOl1NK4GY0m8tPzk5Jw9IvQkHE7cMtZ4"
 
@@ -34,7 +35,6 @@ def scrape_documents(symbol: str, work_dir: str):
         soup = BeautifulSoup(res.text, 'html.parser')
         links = []
 
-        # Annual Report
         ann = soup.find(lambda tag: tag.name == "h3" and "Annual reports" in tag.text)
         if ann:
             li = ann.find_next('ul').find('li')
@@ -44,7 +44,6 @@ def scrape_documents(symbol: str, work_dir: str):
                 name = f"{symbol}_AnnualReport_{year.group(1) if year else 'latest'}.pdf"
                 links.append((url, os.path.join(folder, name)))
 
-        # Concalls
         con = soup.find(lambda tag: tag.name == "h3" and "Concalls" in tag.text)
         if con:
             li = con.find_next('ul').find('li')
@@ -75,7 +74,6 @@ def scrape_documents(symbol: str, work_dir: str):
     except Exception as e:
         return None, str(e)
 
-# Telegram Bot Handlers
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Send me a stock ticker (e.g., RELIANCE, TCS) to get the latest reports.")
 
@@ -90,14 +88,14 @@ async def handle_ticker(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await update.message.reply_text(f"Error: {err}")
 
-# Main entrypoint
 def main():
     if not BOT_TOKEN:
         print("BOT_TOKEN not set. Set it in Railway environment.")
         return
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    app = Application.builder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_ticker))
+    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_ticker))
+    print("Bot running...")
     app.run_polling()
 
 if __name__ == '__main__':
